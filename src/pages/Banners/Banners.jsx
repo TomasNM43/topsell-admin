@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, Form, Input, Switch, InputNumber, message } from 'antd';
+import { Table, Button, Space, Modal, Form, Input, Switch, InputNumber, message, Image } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import bannerService from '../../services/bannerService';
+import ImageUpload from '../../components/ImageUpload';
 
 const Banners = () => {
   const [banners, setBanners] = useState([]);
@@ -90,13 +91,18 @@ const Banners = () => {
       key: 'title',
     },
     {
-      title: 'URL de Imagen',
+      title: 'Imagen',
       dataIndex: 'imageUrl',
       key: 'imageUrl',
+      width: 150,
       render: (url) => (
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          {url?.substring(0, 50)}...
-        </a>
+        <Image
+          src={url}
+          alt="banner"
+          width={100}
+          height={60}
+          style={{ objectFit: 'cover', borderRadius: 4 }}
+        />
       ),
     },
     {
@@ -187,13 +193,12 @@ const Banners = () => {
 
           <Form.Item
             name="imageUrl"
-            label="URL de Imagen"
+            label="Imagen del Banner"
             rules={[
-              { required: true, message: 'Por favor ingrese la URL de la imagen' },
-              { type: 'url', message: 'Por favor ingrese una URL válida' },
+              { required: true, message: 'Por favor suba una imagen' },
             ]}
           >
-            <Input placeholder="https://ejemplo.com/imagen.jpg" />
+            <ImageUpload folder="banners" />
           </Form.Item>
 
           <Form.Item

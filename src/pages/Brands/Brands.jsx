@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, Form, Input, message } from 'antd';
+import { Table, Button, Space, Modal, Form, Input, message, Image } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import brandService from '../../services/brandService';
+import ImageUpload from '../../components/ImageUpload';
 
 const Brands = () => {
   const [brands, setBrands] = useState([]);
@@ -90,14 +91,19 @@ const Brands = () => {
       key: 'name',
     },
     {
-      title: 'Logo URL',
+      title: 'Logo',
       dataIndex: 'logoUrl',
       key: 'logoUrl',
+      width: 120,
       render: (url) => (
         url ? (
-          <a href={url} target="_blank" rel="noopener noreferrer">
-            {url.substring(0, 50)}...
-          </a>
+          <Image
+            src={url}
+            alt="logo"
+            width={80}
+            height={50}
+            style={{ objectFit: 'contain' }}
+          />
         ) : '-'
       ),
     },
@@ -171,12 +177,9 @@ const Brands = () => {
 
           <Form.Item
             name="logoUrl"
-            label="URL del Logo"
-            rules={[
-              { type: 'url', message: 'Por favor ingrese una URL válida' },
-            ]}
+            label="Logo de la Marca"
           >
-            <Input placeholder="https://ejemplo.com/logo.jpg" />
+            <ImageUpload folder="brands" />
           </Form.Item>
         </Form>
       </Modal>

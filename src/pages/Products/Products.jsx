@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, Form, Input, InputNumber, Switch, Select, message } from 'antd';
+import { Table, Button, Space, Modal, Form, Input, InputNumber, Switch, Select, message, Image } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import brandService from '../../services/brandService';
+import MultipleImageUpload from '../../components/MultipleImageUpload';
 
 const { TextArea } = Input;
 
@@ -65,6 +66,8 @@ const Products = () => {
       ...record,
       categoryId: record.category?.id,
       brandId: record.brand?.id,
+      // Convertir imageUrl a array para el componente MultipleImageUpload
+      imageUrl: record.imageUrl ? [record.imageUrl] : [],
     };
     form.setFieldsValue(formData);
     setModalVisible(true);
@@ -99,7 +102,13 @@ const Products = () => {
         longDescription: values.longDescription,
         price: values.price,
         stock: values.stock,
-        imageUrl: values.imageUrl,
+        // Si imageUrl es un array, tomar la primera imagen como principal
+        // Tu backend puede necesitar un array completo, ajusta según sea necesario
+        imageUrl: Array.isArray(values.imageUrl) 
+          ? values.imageUrl[0] 
+          : values.imageUrl,
+        // Opcionalmente puedes enviar todas las imágenes si tu backend lo soporta
+        // imageUrls: Array.isArray(values.imageUrl) ? values.imageUrl : [values.imageUrl],
         featured: values.featured || false,
         active: values.active !== undefined ? values.active : true,
         category: categories.find(c => c.id === values.categoryId),
@@ -134,6 +143,23 @@ const Products = () => {
       dataIndex: 'name',
       key: 'name',
       width: 200,
+    },
+    {
+      title: 'Imagen',
+      dataIndex: 'imageUrl',
+      key: 'imageUrl',
+      width: 100,
+      render: (url) => (
+        url ? (
+          <Image
+            src={url}
+            alt="producto"
+            width={60}
+            height={60}
+            style={{ objectFit: 'cover', borderRadius: 4 }}
+          />
+        ) : '-'
+      ),
     },
     {
       title: 'Precio',
@@ -303,13 +329,13 @@ const Products = () => {
 
           <Form.Item
             name="imageUrl"
-            label="URL de Imagen"
+            label="Imagen Principal del Producto"
             rules={[
-              { required: true, message: 'Por favor ingrese la URL de la imagen' },
-              { type: 'url', message: 'Por favor ingrese una URL válida' },
+              { required: true, message: 'Por favor suba una imagen del producto' },
             ]}
+            extra="Sube la imagen principal del producto"
           >
-            <Input placeholder="https://ejemplo.com/producto.jpg" />
+            <MultipleImageUpload folder="products" maxCount={5} />
           </Form.Item>
 
           <Space style={{ width: '100%' }} size="large">

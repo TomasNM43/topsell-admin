@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Table, Button, Space, Modal, Form, Input, message } from 'antd';
+import { Table, Button, Space, Modal, Form, Input, message, Image } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import categoryService from '../../services/categoryService';
+import ImageUpload from '../../components/ImageUpload';
 
 const { TextArea } = Input;
 
@@ -113,11 +114,16 @@ const Categories = () => {
       title: 'Imagen',
       dataIndex: 'image',
       key: 'image',
+      width: 120,
       render: (url) => (
         url ? (
-          <a href={url} target="_blank" rel="noopener noreferrer">
-            Ver imagen
-          </a>
+          <Image
+            src={url}
+            alt="categoría"
+            width={80}
+            height={60}
+            style={{ objectFit: 'cover', borderRadius: 4 }}
+          />
         ) : '-'
       ),
     },
@@ -207,12 +213,9 @@ const Categories = () => {
 
           <Form.Item
             name="image"
-            label="URL de Imagen"
-            rules={[
-              { type: 'url', message: 'Por favor ingrese una URL válida' },
-            ]}
+            label="Imagen de la Categoría"
           >
-            <Input placeholder="https://ejemplo.com/imagen.jpg" />
+            <ImageUpload folder="categories" />
           </Form.Item>
 
           <Form.Item
