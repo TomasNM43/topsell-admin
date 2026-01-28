@@ -3,5 +3,49 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(248, 249, 250);
+  padding: 50px;
+  /*border-bottom: 1px solid #e5e7eb; */
+}
+
+.ant-menu-item {
+  height: 56px !important;
+  line-height: 56px !important;
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
+}
+
+.ant-menu-item .ant-menu-item-icon {
+  font-size: 18px !important;
+}
+
+/* Colores personalizados del menú basados en el logotipo */
+.ant-menu-light {
+  background: #F8F9FA !important;
+}
+
+.ant-menu-light .ant-menu-item-selected {
+  background-color: #E6332A !important;
+}
+
+.ant-menu-light .ant-menu-item:hover {
+  background-color: rgba(230, 51, 42, 0.1) !important;
+}
+
+.ant-menu-light .ant-menu-item-selected a,
+.ant-menu-light .ant-menu-item-selected .ant-menu-item-icon {
+  color: #ffffff !important;
+}
+
+.ant-menu-light .ant-menu-item:hover a,
+.ant-menu-light .ant-menu-item:hover .ant-menu-item-icon {
+  color: #E6332A !important;
+}
+
+.ant-menu-light .ant-menu-item a {
+  color: #1D1D1B !important;
+}
+
+.ant-menu-light .ant-menu-item .ant-menu-item-icon {
+  color: #1D1D1B !important;
 }

@@ -1,10 +1,12 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Layout, Menu } from 'antd';
 import { 
+  DashboardOutlined,
   AppstoreOutlined, 
   TagsOutlined, 
   AppstoreAddOutlined,
-  ShoppingOutlined 
+  ShoppingOutlined,
+  UserOutlined
 } from '@ant-design/icons';
 import './AdminLayout.css';
 
@@ -15,48 +17,68 @@ const AdminLayout = () => {
 
   const menuItems = [
     {
+      key: '/dashboard',
+      icon: <DashboardOutlined style={{ fontSize: '18px' }} />,
+      label: <Link to="/dashboard" style={{ fontSize: '20px' }}>Dashboard</Link>,
+    },
+    {
       key: '/banners',
-      icon: <AppstoreOutlined />,
-      label: <Link to="/banners">Banners</Link>,
+      icon: <AppstoreOutlined style={{ fontSize: '18px' }} />,
+      label: <Link to="/banners" style={{ fontSize: '20px' }}>Banners</Link>,
     },
     {
       key: '/brands',
-      icon: <TagsOutlined />,
-      label: <Link to="/brands">Marcas</Link>,
+      icon: <TagsOutlined style={{ fontSize: '18px' }} />,
+      label: <Link to="/brands" style={{ fontSize: '20px' }}>Marcas</Link>,
     },
     {
       key: '/categories',
-      icon: <AppstoreAddOutlined />,
-      label: <Link to="/categories">Categorías</Link>,
+      icon: <AppstoreAddOutlined style={{ fontSize: '18px' }} />,
+      label: <Link to="/categories" style={{ fontSize: '20px' }}>Categorías</Link>,
     },
     {
       key: '/products',
-      icon: <ShoppingOutlined />,
-      label: <Link to="/products">Productos</Link>,
+      icon: <ShoppingOutlined style={{ fontSize: '18px' }} />,
+      label: <Link to="/products" style={{ fontSize: '20px' }}>Productos</Link>,
+    },
+    {
+      key: '/users',
+      icon: <UserOutlined style={{ fontSize: '18px' }} />,
+      label: <Link to="/users" style={{ fontSize: '20px' }}>Usuarios</Link>,
     },
   ];
 
-  const selectedKey = menuItems.find(item => location.pathname.startsWith(item.key))?.key || '/banners';
+  const selectedKey = menuItems.find(item => location.pathname.startsWith(item.key))?.key || '/dashboard';
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
+        width={280}
         style={{
-          background: '#001529',
+          background: '#F8F9FA',
         }}
       >
         <div className="logo">
-          <h2 style={{ color: 'white', textAlign: 'center', padding: '16px 0' }}>
-            TopSell Admin
-          </h2>
+          <img 
+            src="/logotipo.png" 
+            alt="TopSell Admin" 
+            style={{ 
+              maxWidth: '90%', 
+              maxHeight: '60px',
+              width: 'auto',
+              height: 'auto', 
+              objectFit: 'contain'
+            }} 
+          />
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[selectedKey]}
           items={menuItems}
+          style={{ fontSize: '20px', background: '#F8F9FA', border: 'none' }}
         />
       </Sider>
       <Layout>
@@ -65,7 +87,7 @@ const AdminLayout = () => {
             Panel de Administración
           </h1>
         </Header>
-        <Content style={{ margin: '24px 16px', padding: 24, background: '#fff', minHeight: 280 }}>
+        <Content style={{ margin: '24px 20px', padding: 24, background: '#fff', minHeight: 280 }}>
           <Outlet />
         </Content>
       </Layout>
