@@ -38,10 +38,12 @@ const Categories = () => {
 
   const handleEdit = (record) => {
     setEditingCategory(record);
-    // Convertir subCategories array a string si existe
+    // Convertir subCategories array de objetos a string si existe
     const formData = {
       ...record,
-      subCategories: record.subCategories ? record.subCategories.join(', ') : ''
+      subCategories: record.subCategories 
+        ? record.subCategories.map(sub => sub.name).join(', ') 
+        : ''
     };
     form.setFieldsValue(formData);
     setModalVisible(true);
@@ -67,16 +69,45 @@ const Categories = () => {
     });
   };
 
+  const generateSlug = (text) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
+  const handleNameChange = (e) => {
+    const name = e.target.value;
+    if (name && !editingCategory) {
+      const slug = generateSlug(name);
+      form.setFieldsValue({ slug });
+    }
+  };
+
   const handleSubmit = async (values) => {
     try {
-      // Convertir subCategories de string a array
+      // Convertir subCategories de string a array de objetos
+      const subCategoriesArray = values.subCategories 
+        ? values.subCategories.split(',').map(s => s.trim()).filter(s => s)
+        : [];
+      
+      const subCategoriesObjects = subCategoriesArray.map(name => ({
+        name: name,
+        slug: name.toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+      }));
+
       const categoryData = {
         ...values,
-        subCategories: values.subCategories 
-          ? values.subCategories.split(',').map(s => s.trim()).filter(s => s)
-          : []
+        subCategories: subCategoriesObjects
       };
-
+      
+      console.log('Submitting category data:', categoryData);
       if (editingCategory) {
         await categoryService.update(editingCategory.id, categoryData);
         message.success('Categoría actualizada exitosamente');
@@ -131,7 +162,9 @@ const Categories = () => {
       title: 'Subcategorías',
       dataIndex: 'subCategories',
       key: 'subCategories',
-      render: (subCats) => subCats ? subCats.join(', ') : '-',
+      render: (subCats) => subCats && subCats.length > 0 
+        ? subCats.map(sub => sub.name).join(', ') 
+        : '-',
     },
     {
       title: 'Acciones',
@@ -199,7 +232,7 @@ const Categories = () => {
             label="Nombre"
             rules={[{ required: true, message: 'Por favor ingrese el nombre de la categoría' }]}
           >
-            <Input placeholder="Nombre de la categoría" />
+            <Input placeholder="Nombre de la categoría" onChange={handleNameChange} />
           </Form.Item>
 
           <Form.Item

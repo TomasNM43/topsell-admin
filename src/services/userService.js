@@ -13,6 +13,12 @@ const userService = {
     return response.data;
   },
 
+  // Crear un nuevo usuario
+  create: async (userData) => {
+    const response = await api.post('/api/users/admin', userData);
+    return response.data;
+  },
+
   // Actualizar un usuario
   update: async (id, userData) => {
     const response = await api.put(`/api/users/admin/${id}`, userData);

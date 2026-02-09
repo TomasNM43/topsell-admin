@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Select, message } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import userService from '../../services/userService';
 
 const { Option } = Select;
@@ -27,6 +27,12 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCreate = () => {
+    setEditingUser(null);
+    form.resetFields();
+    setModalVisible(true);
   };
 
   const handleEdit = (record) => {
@@ -63,13 +69,21 @@ const Users = () => {
 
   const handleSubmit = async (values) => {
     try {
-      await userService.update(editingUser.id, values);
-      message.success('Usuario actualizado exitosamente');
+      if (editingUser) {
+        // Actualizar usuario existente
+        await userService.update(editingUser.id, values);
+        message.success('Usuario actualizado exitosamente');
+      } else {
+        // Crear nuevo usuario
+        await userService.create(values);
+        message.success('Usuario creado exitosamente');
+      }
       setModalVisible(false);
       form.resetFields();
+      setEditingUser(null);
       fetchUsers();
     } catch (error) {
-      message.error('Error al actualizar el usuario');
+      message.error(editingUser ? 'Error al actualizar el usuario' : 'Error al crear el usuario');
       console.error(error);
     }
   };
@@ -142,6 +156,13 @@ const Users = () => {
     <div>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Gestión de Usuarios</h2>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleCreate}
+        >
+          Crear Usuario
+        </Button>
       </div>
 
       <Table
@@ -153,11 +174,12 @@ const Users = () => {
       />
 
       <Modal
-        title="Editar Usuario"
+        title={editingUser ? "Editar Usuario" : "Crear Usuario"}
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
+          setEditingUser(null);
         }}
         onOk={() => form.submit()}
         okText="Guardar"
@@ -198,6 +220,19 @@ const Users = () => {
           >
             <Input placeholder="Email del usuario" />
           </Form.Item>
+
+          {!editingUser && (
+            <Form.Item
+              name="password"
+              label="Contraseña"
+              rules={[
+                { required: true, message: 'Por favor ingrese la contraseña' },
+                { min: 6, message: 'La contraseña debe tener al menos 6 caracteres' },
+              ]}
+            >
+              <Input.Password placeholder="Contraseña del usuario" />
+            </Form.Item>
+          )}
 
           <Form.Item
             name="phone"

@@ -12,6 +12,7 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -62,12 +63,39 @@ const Products = () => {
 
   const handleEdit = (record) => {
     setEditingProduct(record);
+    
+    // Combinar imagen principal con imágenes secundarias
+    const allImages = [];
+    if (record.imageUrl) {
+      allImages.push(record.imageUrl);
+    }
+    if (record.images && record.images.length > 0) {
+      allImages.push(...record.images.map(img => img.imageUrl));
+    }
+    
+    // Cargar subcategorías de la categoría del producto
+    if (record.category?.id) {
+      const category = categories.find(c => c.id === record.category.id);
+      if (category?.subCategories) {
+        setSubCategories(category.subCategories);
+      }
+    }
+    
+    // Manejar subCategoryId: puede venir como objeto o como ID directo
+    let subCategoryId = null;
+    if (record.subCategory) {
+      subCategoryId = typeof record.subCategory === 'object' 
+        ? record.subCategory.id 
+        : record.subCategory;
+    }
+    
     const formData = {
       ...record,
       categoryId: record.category?.id,
+      subCategoryId: subCategoryId,
       brandId: record.brand?.id,
-      // Convertir imageUrl a array para el componente MultipleImageUpload
-      imageUrl: record.imageUrl ? [record.imageUrl] : [],
+      imageUrl: allImages,
+      features: record.features || [],
     };
     form.setFieldsValue(formData);
     setModalVisible(true);
@@ -93,8 +121,44 @@ const Products = () => {
     });
   };
 
+  const generateSlug = (text) => {
+    return text
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
+  const handleNameChange = (e) => {
+    const name = e.target.value;
+    if (name && !editingProduct) {
+      const slug = generateSlug(name);
+      form.setFieldsValue({ slug });
+    }
+  };
+
+  const handleCategoryChange = (categoryId) => {
+    const category = categories.find(c => c.id === categoryId);
+    if (category?.subCategories && category.subCategories.length > 0) {
+      setSubCategories(category.subCategories);
+    } else {
+      setSubCategories([]);
+    }
+    // Limpiar la subcategoría seleccionada
+    form.setFieldsValue({ subCategoryId: undefined });
+  };
+
   const handleSubmit = async (values) => {
     try {
+      const images = Array.isArray(values.imageUrl) ? values.imageUrl : [];
+      
+      // La primera imagen es la principal, las demás son secundarias
+      const mainImage = images.length > 0 ? images[0] : null;
+      const secondaryImages = images.slice(1).map(url => ({
+        imageUrl: url
+      }));
+      
       // Construir el objeto producto según el formato del backend
       const productData = {
         name: values.name,
@@ -102,16 +166,15 @@ const Products = () => {
         longDescription: values.longDescription,
         price: values.price,
         stock: values.stock,
-        // Si imageUrl es un array, tomar la primera imagen como principal
-        // Tu backend puede necesitar un array completo, ajusta según sea necesario
-        imageUrl: Array.isArray(values.imageUrl) 
-          ? values.imageUrl[0] 
-          : values.imageUrl,
-        // Opcionalmente puedes enviar todas las imágenes si tu backend lo soporta
-        // imageUrls: Array.isArray(values.imageUrl) ? values.imageUrl : [values.imageUrl],
+        imageUrl: mainImage,
+        images: secondaryImages,
+        features: values.features || [],
         featured: values.featured || false,
         active: values.active !== undefined ? values.active : true,
         category: categories.find(c => c.id === values.categoryId),
+        subCategory: values.subCategoryId 
+          ? subCategories.find(sc => sc.id === values.subCategoryId)
+          : null,
         brand: brands.find(b => b.id === values.brandId),
       };
 
@@ -175,10 +238,32 @@ const Products = () => {
       width: 80,
     },
     {
+      title: 'Características',
+      dataIndex: 'features',
+      key: 'features',
+      width: 120,
+      render: (features) => features && features.length > 0 ? `${features.length} items` : '-',
+    },
+    {
       title: 'Categoría',
       dataIndex: ['category', 'name'],
       key: 'category',
       width: 120,
+    },
+    {
+      title: 'Subcategoría',
+      dataIndex: 'subCategory',
+      key: 'subCategory',
+      width: 120,
+      render: (subCategory) => {
+        if (!subCategory) return '-';
+        // Si subCategory es un objeto, mostrar su nombre
+        if (typeof subCategory === 'object' && subCategory.name) {
+          return subCategory.name;
+        }
+        // Si solo es un ID, mostrar el ID
+        return typeof subCategory === 'number' ? `ID: ${subCategory}` : '-';
+      },
     },
     {
       title: 'Marca',
@@ -251,7 +336,7 @@ const Products = () => {
         rowKey="id"
         loading={loading}
         pagination={{ pageSize: 10 }}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1400 }}
       />
 
       <Modal
@@ -270,14 +355,14 @@ const Products = () => {
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          initialValues={{ active: true, featured: false, stock: 0 }}
+          initialValues={{ active: true, featured: false, stock: 0, features: [] }}
         >
           <Form.Item
             name="name"
             label="Nombre del Producto"
             rules={[{ required: true, message: 'Por favor ingrese el nombre del producto' }]}
           >
-            <Input placeholder="Nombre del producto" />
+            <Input placeholder="Nombre del producto" onChange={handleNameChange} />
           </Form.Item>
 
           <Form.Item
@@ -295,6 +380,18 @@ const Products = () => {
             rules={[{ required: true, message: 'Por favor ingrese la descripción' }]}
           >
             <TextArea rows={4} placeholder="Descripción detallada del producto" />
+          </Form.Item>
+
+          <Form.Item
+            name="features"
+            label="Características del Producto"
+            extra="Escribe y presiona Enter para agregar cada característica"
+          >
+            <Select
+              mode="tags"
+              placeholder="Ej: Material resistente, Diseño ergonómico, etc."
+              style={{ width: '100%' }}
+            />
           </Form.Item>
 
           <Space style={{ width: '100%' }} size="large">
@@ -329,11 +426,11 @@ const Products = () => {
 
           <Form.Item
             name="imageUrl"
-            label="Imagen Principal del Producto"
+            label="Imágenes del Producto"
             rules={[
-              { required: true, message: 'Por favor suba una imagen del producto' },
+              { required: true, message: 'Por favor suba al menos una imagen del producto' },
             ]}
-            extra="Sube la imagen principal del producto"
+            extra="La primera imagen será la principal, las demás serán imágenes secundarias (máximo 5)"
           >
             <MultipleImageUpload folder="products" maxCount={5} />
           </Form.Item>
@@ -345,7 +442,10 @@ const Products = () => {
               rules={[{ required: true, message: 'Por favor seleccione una categoría' }]}
               style={{ width: 250 }}
             >
-              <Select placeholder="Seleccionar categoría">
+              <Select 
+                placeholder="Seleccionar categoría"
+                onChange={handleCategoryChange}
+              >
                 {categories.map((cat) => (
                   <Select.Option key={cat.id} value={cat.id}>
                     {cat.name}
@@ -355,20 +455,37 @@ const Products = () => {
             </Form.Item>
 
             <Form.Item
-              name="brandId"
-              label="Marca"
-              rules={[{ required: true, message: 'Por favor seleccione una marca' }]}
+              name="subCategoryId"
+              label="Subcategoría"
               style={{ width: 250 }}
             >
-              <Select placeholder="Seleccionar marca">
-                {brands.map((brand) => (
-                  <Select.Option key={brand.id} value={brand.id}>
-                    {brand.name}
+              <Select 
+                placeholder="Seleccionar subcategoría"
+                disabled={subCategories.length === 0}
+              >
+                {subCategories.map((subCat) => (
+                  <Select.Option key={subCat.id} value={subCat.id}>
+                    {subCat.name}
                   </Select.Option>
                 ))}
               </Select>
             </Form.Item>
           </Space>
+
+          <Form.Item
+            name="brandId"
+            label="Marca"
+            rules={[{ required: true, message: 'Por favor seleccione una marca' }]}
+            style={{ width: '100%' }}
+          >
+            <Select placeholder="Seleccionar marca">
+              {brands.map((brand) => (
+                <Select.Option key={brand.id} value={brand.id}>
+                  {brand.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
 
           <Space size="large">
             <Form.Item

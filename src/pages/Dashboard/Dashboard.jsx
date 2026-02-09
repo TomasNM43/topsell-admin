@@ -5,7 +5,8 @@ import {
   ShoppingOutlined, 
   AppstoreAddOutlined,
   TagsOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  FileTextOutlined
 } from '@ant-design/icons';
 import {
   BarChart,
@@ -25,6 +26,7 @@ import productService from '../../services/productService';
 import categoryService from '../../services/categoryService';
 import brandService from '../../services/brandService';
 import bannerService from '../../services/bannerService';
+import quoteService from '../../services/quoteService';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -33,10 +35,11 @@ const Dashboard = () => {
     categories: 0,
     brands: 0,
     banners: 0,
+    quotes: 0,
   });
   const [loading, setLoading] = useState(true);
 
-  const COLORS = ['#3f8600', '#1890ff', '#cf1322', '#722ed1', '#eb2f96'];
+  const COLORS = ['#3f8600', '#1890ff', '#cf1322', '#722ed1', '#eb2f96', '#fa8c16'];
 
   useEffect(() => {
     fetchStats();
@@ -45,12 +48,13 @@ const Dashboard = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const [users, products, categories, brands, banners] = await Promise.all([
+      const [users, products, categories, brands, banners, quotes] = await Promise.all([
         userService.getAll().catch(() => []),
         productService.getAll().catch(() => []),
         categoryService.getAll().catch(() => []),
         brandService.getAll().catch(() => []),
         bannerService.getAll().catch(() => []),
+        quoteService.getAll().catch(() => []),
       ]);
 
       setStats({
@@ -59,6 +63,7 @@ const Dashboard = () => {
         categories: categories.length,
         brands: brands.length,
         banners: banners.length,
+        quotes: quotes.length,
       });
     } catch (error) {
       message.error('Error al cargar las estadísticas');
@@ -74,6 +79,7 @@ const Dashboard = () => {
     { name: 'Categorías', value: stats.categories },
     { name: 'Marcas', value: stats.brands },
     { name: 'Banners', value: stats.banners },
+    { name: 'Cotizaciones', value: stats.quotes },
   ];
 
   return (
@@ -136,6 +142,18 @@ const Dashboard = () => {
               value={stats.banners}
               prefix={<AppstoreOutlined style={{ fontSize: '24px' }} />}
               valueStyle={{ color: '#eb2f96', fontSize: '32px' }}
+              style={{ fontSize: '16px' }}
+            />
+          </Card>
+        </Col>
+
+        <Col xs={24} sm={12} lg={8}>
+          <Card loading={loading}>
+            <Statistic
+              title="Total de Cotizaciones"
+              value={stats.quotes}
+              prefix={<FileTextOutlined style={{ fontSize: '24px' }} />}
+              valueStyle={{ color: '#fa8c16', fontSize: '32px' }}
               style={{ fontSize: '16px' }}
             />
           </Card>

@@ -1,19 +1,39 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Layout, Menu } from 'antd';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Layout, Menu, Button, Dropdown, Avatar } from 'antd';
 import { 
   DashboardOutlined,
   AppstoreOutlined, 
   TagsOutlined, 
   AppstoreAddOutlined,
   ShoppingOutlined,
-  UserOutlined
+  UserOutlined,
+  FileTextOutlined,
+  MailOutlined,
+  LogoutOutlined
 } from '@ant-design/icons';
+import { useAuth } from '../hooks/useAuth';
 import './AdminLayout.css';
 
 const { Header, Sider, Content } = Layout;
 
 const AdminLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const userMenuItems = [
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Cerrar Sesión',
+      onClick: handleLogout,
+    },
+  ];
 
   const menuItems = [
     {
@@ -45,6 +65,16 @@ const AdminLayout = () => {
       key: '/users',
       icon: <UserOutlined style={{ fontSize: '18px' }} />,
       label: <Link to="/users" style={{ fontSize: '20px' }}>Usuarios</Link>,
+    },
+    {
+      key: '/quotes',
+      icon: <FileTextOutlined style={{ fontSize: '18px' }} />,
+      label: <Link to="/quotes" style={{ fontSize: '20px' }}>Cotizaciones</Link>,
+    },
+    {
+      key: '/contacts',
+      icon: <MailOutlined style={{ fontSize: '18px' }} />,
+      label: <Link to="/contacts" style={{ fontSize: '20px' }}>Contactos</Link>,
     },
   ];
 
@@ -82,10 +112,25 @@ const AdminLayout = () => {
         />
       </Sider>
       <Layout>
-        <Header style={{ background: '#fff', padding: '0 24px', boxShadow: '0 1px 4px rgba(0,21,41,.08)' }}>
+        <Header 
+          style={{ 
+            background: '#fff', 
+            padding: '0 24px', 
+            boxShadow: '0 1px 4px rgba(0,21,41,.08)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
           <h1 style={{ margin: 0, fontSize: '20px', fontWeight: '500' }}>
             Panel de Administración
           </h1>
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+              <Avatar icon={<UserOutlined />} style={{ marginRight: '8px' }} />
+              <span>{user?.email || 'Admin'}</span>
+            </div>
+          </Dropdown>
         </Header>
         <Content style={{ margin: '24px 20px', padding: 24, background: '#fff', minHeight: 280 }}>
           <Outlet />

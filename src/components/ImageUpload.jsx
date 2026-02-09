@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, message, Image } from 'antd';
 import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import imageService from '../services/imageService';
@@ -13,6 +13,11 @@ import imageService from '../services/imageService';
 const ImageUpload = ({ value, onChange, folder = 'general', maxSizeMB = 5 }) => {
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState(value);
+
+  // Sincronizar el estado interno con la prop value cuando cambia
+  useEffect(() => {
+    setImageUrl(value);
+  }, [value]);
 
   // Validar archivo antes de subirlo
   const beforeUpload = (file) => {
