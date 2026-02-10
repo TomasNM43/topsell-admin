@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Upload, message, Image } from 'antd';
+import { Upload, message, Modal } from 'antd';
 import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import imageService from '../services/imageService';
 
@@ -12,12 +12,20 @@ import imageService from '../services/imageService';
  */
 const ImageUpload = ({ value, onChange, folder = 'general', maxSizeMB = 5 }) => {
   const [loading, setLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState(value);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
 
-  // Sincronizar el estado interno con la prop value cuando cambia
-  useEffect(() => {
-    setImageUrl(value);
-  }, [value]);
+  // Convertir la URL en un fileList para Ant Design
+  const fileList = value
+    ? [
+        {
+          uid: '-1',
+          name: 'image',
+          status: 'done',
+          url: value,
+        },
+      ]
+    : [];
 
   // Validar archivo antes de subirlo
   const beforeUpload = (file) => {
@@ -45,7 +53,6 @@ const ImageUpload = ({ value, onChange, folder = 'general', maxSizeMB = 5 }) => 
       // Subir imagen al servidor
       const url = await imageService.upload(file, folder);
       
-      setImageUrl(url);
       onChange?.(url); // Notificar al Form.Item del cambio
       onSuccess(url);
       message.success('Imagen subida exitosamente');
@@ -56,6 +63,17 @@ const ImageUpload = ({ value, onChange, folder = 'general', maxSizeMB = 5 }) => 
     } finally {
       setLoading(false);
     }
+  };
+
+  // Manejar la eliminación de la imagen
+  const handleRemove = () => {
+    onChange?.(null);
+  };
+
+  // Manejar la previsualización de la imagen
+  const handlePreview = async (file) => {
+    setPreviewImage(file.url || file.preview);
+    setPreviewOpen(true);
   };
 
   // Botón de upload
@@ -69,25 +87,28 @@ const ImageUpload = ({ value, onChange, folder = 'general', maxSizeMB = 5 }) => 
   );
 
   return (
-    <Upload
-      name="image"
-      listType="picture-card"
-      className="image-uploader"
-      showUploadList={false}
-      beforeUpload={beforeUpload}
-      customRequest={handleUpload}
-    >
-      {imageUrl ? (
-        <Image
-          src={imageUrl}
-          alt="imagen"
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          preview={true}
-        />
-      ) : (
-        uploadButton
-      )}
-    </Upload>
+    <>
+      <Upload
+        name="image"
+        listType="picture-card"
+        className="image-uploader"
+        fileList={fileList}
+        beforeUpload={beforeUpload}
+        customRequest={handleUpload}
+        onPreview={handlePreview}
+        onRemove={handleRemove}
+        maxCount={1}
+      >
+        {fileList.length >= 1 ? null : uploadButton}
+      </Upload>
+      <Modal
+        open={previewOpen}
+        footer={null}
+        onCancel={() => setPreviewOpen(false)}
+      >
+        <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+      </Modal>
+    </>
   );
 };
 
