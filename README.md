@@ -50,6 +50,8 @@ VITE_API_BASE_URL=http://localhost:8080
    - **Value:** URL de tu API en producción (ej: `https://api.topsell.com`)
    - **Environment:** Production
 
+**Nota:** El archivo `vercel.json` ya está configurado para manejar el enrutamiento de React Router correctamente, evitando errores 404 al recargar páginas.
+
 ### 2. Instalación
 
 ```bash
